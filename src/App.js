@@ -1,21 +1,29 @@
 import foods from './foods.json';
-import { Card, Row, Col, Divider, Input, Button } from 'antd';
+import {Row, Col, Divider, Button } from 'antd';
 import { useState } from 'react';
 import './App.css';
 import FoodBox from './components/FoodBox';
 import AddFoodForm from './components/AddFoodForm';
 import Search from './components/Search';
-import { isVisible } from '@testing-library/user-event/dist/utils';
 
 function App() {
   const [allFoods, setAllFoods] = useState(foods);
+  const [isEmpty, setIsEmpty] = useState(false);
 
   function searchFood(e) {
     const copy = [...foods];
     const searchFoodList = copy.filter((food) => {
       return food.name.toLowerCase().includes(e.target.value.toLowerCase());
     });
-    setAllFoods(searchFoodList);
+
+    if (searchFoodList.length === 0) {
+      setIsEmpty(true);
+      setAllFoods(searchFoodList);
+      console.log("detected empty")
+    } else {
+      setIsEmpty(false);
+      setAllFoods(searchFoodList);
+    }
   }
 
   function deleteFood(name) {
@@ -30,20 +38,33 @@ function App() {
     setAllFoods(updatedFood);
   };
 
-  const [isShown, setIsShown] = useState(false);
+  const [addFormIsShown, setAddFormIsShown] = useState(false);
+  function toggleFormVisibility() {
+    if (addFormIsShown === true) {
+      setAddFormIsShown(false);
+    } else {
+      setAddFormIsShown(true);
+    }
+  }
 
   return (
     <div className="App">
-      <AddFoodForm addNewFood={addNewFood} />
-      <Button>Show</Button>
+      {addFormIsShown ? <AddFoodForm addNewFood={addNewFood} /> : <></>}
+      {addFormIsShown ? (
+        <Button onClick={toggleFormVisibility}>Hide form</Button>
+      ) : (
+        <Button onClick={toggleFormVisibility}>Add new food</Button>
+      )}
       <Divider />
       <Search searchFood={searchFood} />
-      <Divider />
-      <Row style={{ width: '100%', justifyContent: 'center' }}>
+      <Divider>Food List</Divider>
+      {!isEmpty &&  <Row style={{ width: '100%', justifyContent: 'center' }}>
         {allFoods.map((food) => {
           return <FoodBox food={food} deleteFood={deleteFood} />;
         })}
-      </Row>
+      </Row>}
+      {isEmpty && <div><h3>Oops! No more food to show</h3></div>}
+
     </div>
   );
 }
